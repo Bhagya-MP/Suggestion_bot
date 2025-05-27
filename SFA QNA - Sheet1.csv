@@ -1,0 +1,145 @@
+Issue No.,Date,Customer,Issue / Task,Solution,Word Doc. Updated
+,2025.05.14,Common,How to import the opening stock and balance stock into the system?,"* For Customer Opening Balances:
+Document Owner Code -: Customer code
+Document No -: Invoice No
+Balance Amount -: Outstanding Amount
+Document Type -: COB
+Route Code is optional
+Add particular Rep Name
+Date - dd/MM/yyyy (Should be in Text format)
+
+Steps:
+1. Fill the excel sheet correctly by using the above information.
+2. Go to Master Data --> Import --> Import Data in the system.
+3. Then choose the filled external party opening balances excel file.
+4. Then click on the "" Import External Party Opening Balances"" button to upload the excel sh",TRUE
+,,Common,"1. How to adjust the stock?
+2. How to adjust the batch no issue?
+3. When the difference between the physical stock and the system stock.
+(E.g.:Physical stock-102, System stock-100)","Stock Adjustment:
+
+Path: Inventory --> Stock Adjustment 
+* To add a new stock adjustment, select the supplier, source location, and price list, then click ""Add Line"" to enter product details with quantities. 
+* Then click ""Save"" to complete the adjustment.",TRUE
+,,Common,How to get Delivery Return? ,,FALSE
+,,Common,How to get Market Return?,,FALSE
+,,Common,How to get Headoffice Return?,,FALSE
+,,Common,"When upload the bulk invoice;
+1. ""Batch not found issue""  
+2. ""Product code does not exist""","1. Should be checked whether the 'Batch' matches the relevant price list and the 'Batch' in the bulk invoice Excel file.
+2.Check;
+- Is product existing or not with that product code 
+- Is that product on price list",TRUE
+,,Common,PDA 'Sync' errors; Stop '0%',Force Top' and 'cache clear' in the app,TRUE
+,,Common,PDA 'Sync' errors; Stop '60%',"Backend; Should be check the 'Territory Distributor Mapping' for the relevnt rep
+Path: Master Data --> Territory Distributor Mapping",TRUE
+,,Common,PDA 'Sync' errors; Stop '87%',Should be check the 'Outstanding Invoices' ,TRUE
+,,Nelna Farm,"
+Dashboard Report Accessibility Issue
+
+Affected User Roles:  Directors / Sales Admin /  RSM / ASM
+DashBoard Reports: Supervisor Sales Summery / Stock Dashboard / Volume Wise Achievement ",Currently this issue has no solution (For Some User Roles). Should be fixed.,FALSE
+,,GS,"Backend: Rep locations are not loading in the geo location tab 
+
+'Daily Rep Activity' Report:
+GPS is 'ON' but the longitude and latitude are '0'
+",Should be given the permission of 'location' on the PDA side.,TRUE
+,,MD,"Stock locations are not being loaded in the location-wise batch stock report.
+
+",Should be select the user accessible node. (Rep and Distributor),TRUE
+,,My Cola,"Stock Return Credit Node:
+Some product prices are shown wrong or appear as 0 for some distributors.",Should be check the price list ,FALSE
+,2025.05.15,NBC,"When select the price list, product UOM and credit term but Products are not loading in the PO",Backend: Should adding product group to relevant rep node,FALSE
+,,NBC,Reps can't see items in the mobile app,Should be check the Price Batches ,FALSE
+,,NBC,Uploaded GRN Qty mismatch ,Return the difference qty by purchase return debit note,FALSE
+,,Delmage FFA,"1. Target not showing for the relevant rep in the Target Vs. Achievement Dashboard
+2. Target Upload Error Message called ''Period name does not exist'' but the period name already created.
+3. How to Create Target Period","1. Add text to the sales hierarchy nodes device imei and active the node
+2. Create period name in the backend (Explain process)",TRUE
+,,Common,Products not showing in SFA App ,"Should be check:
+- Distributor locations add to rep node
+- Stock should be available in relevant stock location
+- due to Stock shortage
+- tik on 'Available to SFA'
+- product not in secondary price list
+- Products should be applied to the product group
+- Relevant product group should be applied to the rep node",TRUE
+,,Common,"Error on ""can't access this route plase contact your administrator""",Should be add the visit plan,FALSE
+,,Common,"Price LIst Uploading Error Messages
+1. 'Batch Not Present'
+2. 'Product does not exist'","1. Needs to 'Text to column' - Rate , MRP and Batch Number columns
+2. Check the product is available in the backend and check the 'Active' tik",FALSE
+,2024.11.04,Promate,Wrong discount budget entry,Rename the current discount budget,FALSE
+,2024.11.11,Jupitor / Common,Products not showing in App,"Should be check
+- Distributor locations add to rep node
+- Stock should be available in relevant stock location
+- Product should be in Secondary price list
+- Products 'Batch' number 
+- tick on 'Available to SFA' 
+- product active or not
+- tik on ' Allow sales orders'
+- Products should be applied to the product group
+- Relevant product group should be applied to the rep node
+",TRUE
+,,,,,FALSE
+,2025.12.04,KTI,"1. Products not showing in purchase return debit note
+2. Product not showing in Purchase Return Debit note when using GRN no","1. Check;
+- is Good Receipt no
+- Price list should be selected
+- Stock should be available in source location
+
+2. Check;
+- Stock should be available in source location
+- Already a purchase return debit note has been processed referring that GRN",TRUE
+,2025.01.09,Marina,"Can't save PO error occured ""dupclicate PO""",Create a new PO,FALSE
+,2025.01.11,Marina,Customers not displying in PDA side,"1. Make the 'Additional Data Download' in the PDA 
+2. Should be check the Route customer assignment",TRUE
+,2025.04.09,Jupitor,"""Doesn't found good location"" error occured in loading",Should be ask the given solution from the BA ,FALSE
+,2025.04.23,Marina,Stock not showing in the PDA side,Check if batch no same in primary & secondary price list,FALSE
+,2025.01.17,Janet,Stock Transfer Reject Issue,Should be ask the given solution from the BA ,FALSE
+,2025.01.31,Janet,Month End Issue,Should be ask the given solution from the BA ,FALSE
+,2025.04.29,CEAT,App crashes when touch on customer ,Clear the app data and check,TRUE
+,2025.04.30,Multichemi,How to track the rep,Image upload' tile to pick the GPS location,FALSE
+,2025.06.02,NBC,App - 'Serial Number Not Found' Issue,Backend - Check the imei no of relevant rep node,TRUE
+,2025.06.14,"Delmage SFA
+",Sales Order Convertion Issue,Should be ask the given solution from the BA ,FALSE
+,2025.06.14,NBC,Return Budget Issue,Should be ask the given solution from the BA ,FALSE
+,2025.05.16,NBC,Discount Issue - ,Create customer hierarchy wise discount scheme assignment,FALSE
+,,Common,App crash when click on plus button for selecting products,Need to apply default price list,TRUE
+,,Common,Showing 'Customer not approved' message when click on SO/Invoice tile,Edit the customer and check the 'approved' tik in the backend,TRUE
+,,Common,Showing 'Credit Request Approval' message when click on SO/Invoice tile,Edit the customer and apply 'Skip Credit Validation' in the backend,TRUE
+,,Common,When making the Retun not display return reasons in the App,"Should be add return resons 
+Path:- Master data --> return resons",TRUE
+,,Common,GRN is not showing to the Distributor,Check the Sync error log,FALSE
+,,Common,Can't submit the 'Debit Note Request',Apply the 'Show All Location' in the Debit Note Request Invoice Type,FALSE
+,,Common,Product not showing in stock transfer,"Check; 
+- The Price List
+- Product 'Active' tik
+- Check the stock location",TRUE
+,"2025.05.17 
+Saturday",NBC,"""Damage Return Reason Not Found"" error message appears when convert sales orders",Should be ask the given solution from the BA ,FALSE
+,2025.05.19,Beam,Can't view other stock locations except Head Office ,Assign accesible node as administrator,FALSE
+,,Common,User Role Privilagers Issue ,Check and edit the user roles,FALSE
+,,Common,"When make the period end the following error messages are displayed.
+1. Can't create period end. Uncompleted SO
+2. Can't create period end. Uncompleted DSI
+3. Can't create period end. Uncompleted unloading location with location name
+4. Can't create period end. Uncompleted outstanding invoces","1. Need to convert the sales orders
+2. Need to change the status of the DSI ; 'Delivered'.",TRUE
+,,Common,Distributors not loading,Check the Territory Distributor mapping,FALSE
+,,Common,Error 'Can't save any transaction',Should be set the Financial Year,TRUE
+,,Common,How to add customers to the route?,Should be explain the process (word file),FALSE
+,,GS,Survey Module,Explain detailed,FALSE
+,,GS,Expense Management ,Explain detailed,FALSE
+,,MD,How to add stocks in expire location,Add the Internal Stock Transfer ,FALSE
+,2025.05.21,Janet,How to capture outlet image using the App,Use the 'Image Upload' tile,FALSE
+,,Samindu,Not shown sales orders in asm login & how to create SO to DSI,,FALSE
+,,Samindu,How to inactive Rep users and Distributor users,Edit the relevant user and remove the 'Active' tick (Administration --> Users),TRUE
+,,Samindu,How to inactive routes,Edit the relevant route and remove the 'Active' tick (Sales --> Routes),TRUE
+,,GS,How to delete visit plan,Select the relevant planned route and click 'Delete' icon and select 'Reason'  and click ' Delete' ,TRUE
+,,Ruhunu Foods,"When the stock in to the system (using bulk invoice upload), the error message popup - prices are not into the system",Check the price list - should be add the price lines,FALSE
+,2025.05.20,LuckyLand,How to add custmers in to the system?,Should be explain,FALSE
+,,LuckyLand,How to add the device imie numbers for the relevant node?,Explain the path,FALSE
+,,Ruhunu Foods,How to associate credit node? ,Should be explain credit node association,FALSE
+,,Samindu,Sales Order convert Option,Quick convert and bulk convert,
+,,Samindu,How to delete visit plan,,
