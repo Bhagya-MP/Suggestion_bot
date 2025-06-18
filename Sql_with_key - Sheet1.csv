@@ -1,6 +1,6 @@
 Question,SQL_Query,Essential_fact
 
-1. KPI achievements Line items per bill,
+1. KPI Line items per bill,
 
 "SELECT 
     sf.RepId,
@@ -34,7 +34,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-2. KPI achievements Total Bills,
+2. KPI Line items per day bill,
 
 "SELECT 
     sf.Date,
@@ -71,7 +71,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-3. KPI achievements per bill value / volume,
+3. KPI per bill value / volume,
 
 "SELECT 
     rh.Name AS RepName,
