@@ -473,13 +473,13 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-12. Monthly Sales Target vs current achievement 
+12. Monthly Sales Target vs current achievement for repCode 'KALREP018'
 
 "SELECT
     SUM(st.Value) AS Monthly_Sales_Target,
     COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) AS Current_Achievement,
     (SUM(st.Value) - COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0)) AS Balance_Needed,
-    (COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) / 30) as current_run_rate
+    (COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) / 30) as current_run_rate -- divide by 30 days
 FROM 
     sales_targets AS st
 LEFT JOIN 
