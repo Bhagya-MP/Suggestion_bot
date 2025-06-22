@@ -10,8 +10,7 @@ Question,SQL_Query,Essential_fact
     FROM 
         sales_flat sf
     WHERE 
-        sf.Date >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') 
-        AND sf.Date < LAST_DAY(CURRENT_DATE()) + INTERVAL 1 DAY
+        sf.Date >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH)
     GROUP BY 
         sf.InvoiceNo, sf.RepId
 ),
@@ -23,8 +22,7 @@ BillsPerDay AS (
     FROM 
         sales_flat sf
     WHERE 
-        sf.Date >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') 
-        AND sf.Date < LAST_DAY(CURRENT_DATE()) + INTERVAL 1 DAY
+        sf.Date >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH)
     GROUP BY 
         sf.Date, sf.RepId
 ),
@@ -36,7 +34,7 @@ SalesAndVolume AS (
     FROM 
         sales_flat sf
     WHERE 
-        sf.Date >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01')
+        sf.Date >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH)
     GROUP BY 
         sf.RepId
 ),
@@ -47,7 +45,8 @@ TargetPerRep AS (
     FROM 
         sales_targets st
     WHERE 
-        st.StartDate <= CURRENT_DATE() AND st.EndDate >= CURRENT_DATE()
+        st.StartDate >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH) 
+        AND st.EndDate <= CURRENT_DATE()
         AND st.Type = 1
     GROUP BY 
         st.RepId
