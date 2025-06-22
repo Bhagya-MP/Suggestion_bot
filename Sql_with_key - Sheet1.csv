@@ -1,86 +1,34 @@
 Question,SQL_Query,Essential_fact
 
-1. KPI Line items per bill,
+1. KPI achievements like Line items per bill, per day bills, per bill value / volume 
 
-"SELECT 
-    sf.RepId,
-    sf.InvoiceNo,
-    COUNT(DISTINCT sf.ProductCode) AS LineItemsPerBill
-FROM 
-    sales_flat sf
-WHERE 
-    sf.Date >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') AND sf.Date < LAST_DAY(CURRENT_DATE()) + INTERVAL 1 DAY
-GROUP BY 
-    sf.InvoiceNo, sf.RepId;",
-
-"
-Key factors:
-- SKU refers to the number of unique products (SKUs) engaged or sold during that interaction.
-- When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
-- If the user doesn't mention any time period, do not use a time filter in the SQL query.
-
-Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
-- sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
-- planned_routes(PlannedDate, RouteId, RepId)
-- sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
-- route_customer_assignments(RouteId, CustomerID)
-- Products(Id, Code, Name, PackSize)
-- external_parties(Id, Code, Name,CreatedDate) is this customer table. CreatedDate is added when new customer is created.
-
-Table Relationships:
-- sales_targets.RepId = sales_Hierarchy_Nodes.Id
-- sales_Flat.RepId = sales_Hierarchy_Nodes.Id
-- sales_Flat.ProductCode = products.Code
-- sales_Flat.CustomerCode = external_parties.Code"
-
-2. KPI Line items per day bill,
-
-"SELECT 
-    sf.Date,
-    sf.RepId,
-    COUNT(DISTINCT sf.InvoiceNo) AS TotalBills
-FROM 
-    sales_flat sf
-WHERE 
-    sf.Date >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') 
-    AND sf.Date < LAST_DAY(CURRENT_DATE()) + INTERVAL 1 DAY
-GROUP BY 
-    sf.Date, sf.RepId
-ORDER BY 
-    TotalBills DESC
-LIMIT 10;",
-"
-Key factors:
-- SKU refers to the number of unique products (SKUs) engaged or sold during that interaction.
-- When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
-- If the user doesn't mention any time period, do not use a time filter in the SQL query.
-
-Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
-- sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
-- planned_routes(PlannedDate, RouteId, RepId)
-- sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
-- route_customer_assignments(RouteId, CustomerID)
-- Products(Id, Code, Name, PackSize)
-- external_parties(Id, Code, Name,CreatedDate) is this customer table. CreatedDate is added when new customer is created.
-
-Table Relationships:
-- sales_targets.RepId = sales_Hierarchy_Nodes.Id
-- sales_Flat.RepId = sales_Hierarchy_Nodes.Id
-- sales_Flat.ProductCode = products.Code
-- sales_Flat.CustomerCode = external_parties.Code"
-
-3. KPI per bill value / volume,
-
-"SELECT 
-    rh.Name AS RepName,
-    IFNULL(S.TotalSales, 0) / NULLIF(T.TotalTarget, 0) AS KPI_Per_Bill_Value,
-    IFNULL(S.TotalVolume, 0) AS KPI_Volume,
-    (IFNULL(S.TotalSales, 0) / NULLIF(T.TotalTarget, 0)) / NULLIF(IFNULL(S.TotalVolume, 0), 0) AS KPI
-FROM 
-    sales_hierarchy_nodes rh
-LEFT JOIN (
+"WITH LineItemsPerBill AS (
+    SELECT 
+        sf.RepId,
+        sf.InvoiceNo,
+        COUNT(DISTINCT sf.ProductCode) AS LineItems
+    FROM 
+        sales_flat sf
+    WHERE 
+        sf.Date >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') 
+        AND sf.Date < LAST_DAY(CURRENT_DATE()) + INTERVAL 1 DAY
+    GROUP BY 
+        sf.InvoiceNo, sf.RepId
+),
+BillsPerDay AS (
+    SELECT 
+        sf.Date,
+        sf.RepId,
+        COUNT(DISTINCT sf.InvoiceNo) AS BillsPerDay
+    FROM 
+        sales_flat sf
+    WHERE 
+        sf.Date >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') 
+        AND sf.Date < LAST_DAY(CURRENT_DATE()) + INTERVAL 1 DAY
+    GROUP BY 
+        sf.Date, sf.RepId
+),
+SalesAndVolume AS (
     SELECT 
         sf.RepId, 
         SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END) AS TotalSales,
@@ -88,11 +36,11 @@ LEFT JOIN (
     FROM 
         sales_flat sf
     WHERE 
-        DATE(sf.Date) >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') 
+        sf.Date >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01')
     GROUP BY 
         sf.RepId
-) S ON rh.Id = S.RepId
-LEFT JOIN (
+),
+TargetPerRep AS (
     SELECT 
         st.RepId, 
         SUM(st.Value) AS TotalTarget
@@ -103,38 +51,34 @@ LEFT JOIN (
         AND st.Type = 1
     GROUP BY 
         st.RepId
-) T ON rh.Id = T.RepId
-ORDER BY 
-    KPI_Per_Bill_Value DESC
-LIMIT 10;",
-
+)
+SELECT 
+    rh.Name AS RepName,
+    s.TotalSales,
+    s.TotalVolume,
+    t.TotalTarget,
+    li.LineItems,
+    bp.BillsPerDay,
+    (s.TotalSales / NULLIF(t.TotalTarget, 0)) AS KPI_Per_Bill_Value
+FROM 
+    sales_hierarchy_nodes rh
+LEFT JOIN SalesAndVolume s ON rh.Id = s.RepId
+LEFT JOIN TargetPerRep t ON rh.Id = t.RepId
+LEFT JOIN (
+    SELECT RepId, AVG(LineItems) AS LineItems
+    FROM LineItemsPerBill
+    GROUP BY RepId
+) li ON rh.Id = li.RepId
+LEFT JOIN (
+    SELECT RepId, AVG(BillsPerDay) AS BillsPerDay
+    FROM BillsPerDay
+    GROUP BY RepId
+) bp ON rh.Id = bp.RepId
+ORDER BY KPI_Per_Bill_Value DESC
+LIMIT 10;
 "
-Key factors:
-- When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
-- If the user doesn't mention any time period, do not use a time filter in the SQL query.
-- In the sales_hierarchy_nodes table, the Type field indicates the level of the sales target. When Type = 0, it refers to a primary target, which is the sales target assigned to the distributor. When Type = 1, it refers to a secondary target, which is the target allocated to the sales representative (rep).
-- Aggregated metrics must be separately grouped by Rep before josining with Rep-level information.
-- Joins between differently grouped data must happen only after summarizing to the same granularity level (Rep level).
-- Sales and Targets must be calculated separately and only joined after aggregation is complete.
-- Avoid causing row duplication due to joins between differently grouped datasets.
-- Validate that no direct joins happen between daily grouped data (Productive Calls) and sales_flat invoice data.)
 
-Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
-- sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
-- planned_routes(PlannedDate, RouteId, RepId)
-- sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
-- route_customer_assignments(RouteId, CustomerID)
-- Products(Id, Code, Name, PackSize)
-- external_parties(Id, Code, Name,CreatedDate) is this customer table. CreatedDate is added when new customer is created.
-
-Table Relationships:
-- sales_targets.RepId = sales_Hierarchy_Nodes.Id
-- sales_Flat.RepId = sales_Hierarchy_Nodes.Id
-- sales_Flat.ProductCode = products.Code
-- sales_Flat.CustomerCode = external_parties.Code"
-
-4. Zero sales outlets,
+2. Zero sales outlets,
 
 "SELECT 
     ep.Name AS CustomerName
@@ -161,7 +105,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-5. Rep wise top 10 best performance outlet,
+3. Rep wise top 10 best performance outlet,
 
 "WITH OutletSales AS (
     SELECT 
@@ -225,7 +169,7 @@ Table Relationships:
 - sales_Flat.CustomerCode = external_parties.Code
 "
 
-6. What are the product wise discounts promotions that can be offered to the each outlet,
+4. What are the product wise discounts promotions that can be offered to the each outlet,
 
 "SELECT
     sf.ProductName AS ProductName,
@@ -259,7 +203,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-7. Minimum sales volume to be made based on history sales,
+5. Minimum sales volume to be made based on history sales,
 
 "SELECT
     sf.CustomerName AS OutletName,
@@ -302,7 +246,7 @@ Table Relationships:
 - sales_Flat.CustomerCode = external_parties.Code
 "
 
-8. What are the best-selling SKUs at the Thashvin St outlet,
+6. What are the best-selling SKUs at the Thashvin St outlet,
 
 "SELECT 
     fv.ProductCode AS SKU,
@@ -338,7 +282,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-9. What are the potential outlets for rep  Baticalo Rep 17 to gain a better sales today  based on history sales of outlets.,
+7. What are the potential outlets for rep  Baticalo Rep 17 to gain a better sales today  based on history sales of outlets.,
 
 "SELECT 
     sf.CustomerName AS OutletName,
@@ -381,7 +325,7 @@ Table Relationships:
 - sales_Flat.CustomerCode = external_parties.Code"
 
 
-10. Market return goods trend at the outlet Baticalo Rep 17, is this outlet giving  return usually? If so any specific pack size that the returns are  coming from,
+8. Market return goods trend at the outlet Baticalo Rep 17, is this outlet giving  return usually? If so any specific pack size that the returns are  coming from,
 
 "SELECT 
     sf.ProductName AS PackSize,
@@ -417,7 +361,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-11. What are the best performing outlets for rep 'Baticalo Rep 17' for last 8 month,
+9. What are the best performing outlets for rep 'Baticalo Rep 17' for last 8 month,
 
 "SELECT 
     sf.CustomerName AS OutletName,
@@ -455,7 +399,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-12. What are the best sales routes for 'Baticalo Rep 17' and give top 10 routes for last 10 months,
+10. What are the best sales routes for 'Baticalo Rep 17' and give top 10 routes for last 10 months,
 
 "SELECT 
     sf.Route AS Route,
@@ -492,7 +436,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-13. Give the Average sales in Rs and Average Volume in the top 10 outlets for last year,
+11. Give the Average sales in Rs and Average Volume in the top 10 outlets for last year,
 
 "SELECT 
     sf.CustomerName AS Outlet,
@@ -528,3 +472,21 @@ Table Relationships:
 - sales_Flat.RepId = sales_Hierarchy_Nodes.Id
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
+
+12. Monthly Sales Target vs current achievement 
+
+"SELECT
+    SUM(st.Value) AS Monthly_Sales_Target,
+    COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) AS Current_Achievement,
+    (SUM(st.Value) - COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0)) AS Balance_Needed,
+    (COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) / 30) as current_run_rate
+FROM 
+    sales_targets AS st
+LEFT JOIN 
+    sales_hierarchy_nodes AS shn ON st.RepId = shn.Id
+LEFT JOIN 
+    sales_flat AS sf ON sf.RepId = shn.Id AND sf.RepCode = 'KALREP018'
+WHERE 
+	sf.RepCode = 'KALREP018' AND
+    st.StartDate <= LAST_DAY(CURRENT_DATE) AND 
+    st.EndDate >= DATE_FORMAT(CURRENT_DATE, '%Y-%m-01')"
