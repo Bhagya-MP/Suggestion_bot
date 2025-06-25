@@ -479,7 +479,10 @@ Table Relationships:
     SUM(st.Value) AS Monthly_Sales_Target,
     COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) AS Current_Achievement,
     (SUM(st.Value) - COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0)) AS Balance_Needed,
-    (COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) / 30) as current_run_rate -- divide by 30 days
+    (COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) /
+     NULLIF(DAY(CURDATE()) - 1, 0)) AS current_run_rate,
+
+    (SUM(st.Value) / DAY(LAST_DAY(CURRENT_DATE))) AS required_run_rate
 FROM 
     sales_targets AS st
 LEFT JOIN 
