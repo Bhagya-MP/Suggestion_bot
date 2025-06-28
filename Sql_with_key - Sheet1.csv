@@ -362,10 +362,11 @@ Table Relationships:
 - sales_Flat.CustomerCode = external_parties.Code"
 
 9. What are the best performing outlets for rep 'Baticalo Rep 17' for last 8 month,
-
-"SELECT 
-    sf.CustomerName AS OutletName,
-    SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE -sf.NetValue END) AS TotalSales
+"
+SELECT 
+    sf.CustomerName AS Outlet,
+    SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END) - 
+    SUM(CASE WHEN sf.Type = 'return' THEN sf.NetValue ELSE 0 END) AS NetSales
 FROM 
     sales_flat AS sf
 WHERE 
@@ -373,10 +374,10 @@ WHERE
     AND sf.Date >= DATE_SUB(CURDATE(), INTERVAL 8 MONTH)
 GROUP BY 
     sf.CustomerName
+HAVING 
+    NetSales > 0
 ORDER BY 
-    TotalSales DESC
-LIMIT 5;",
-
+    NetSales DESC;
 "
 Key factors:
 - If the user doesn't mention any time period, do not use a time filter in the SQL query.
