@@ -29,7 +29,7 @@ BillsPerDay AS (
 SalesAndVolume AS (
     SELECT 
         sf.RepId, 
-        SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END) AS TotalSales,
+        SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END) AS TotalSales,
         SUM(sf.Qty) AS TotalVolume
     FROM 
         sales_flat sf
@@ -90,7 +90,7 @@ Key factors:
 - If the user doesn't mention any time period, do not use a time filter in the SQL query.
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -109,7 +109,7 @@ Table Relationships:
 "WITH OutletSales AS (
     SELECT 
         sf.CustomerCode,
-        SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END) AS TotalSales,
+        SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END) AS TotalSales,
         shn.Id AS RepId,
         shn.Name AS RepName
     FROM 
@@ -142,7 +142,7 @@ ORDER BY
 ",
 "
 Key factors:
-- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.netvalue) else -fv.netvalue end) from Sales_Flat fv;
+- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.in_sales) else -fv.in_sales end) from Sales_Flat fv;
 - When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
 - In the sales_hierarchy_nodes table, the Type field indicates the level of the sales target. When Type = 0, it refers to a primary target, which is the sales target assigned to the distributor. When Type = 1, it refers to a secondary target, which is the target allocated to the sales representative (rep).
 - If the user doesn't mention any time period, do not use a time filter in the SQL query.
@@ -153,7 +153,7 @@ Key factors:
 - Avoid causing row duplication due to joins between differently grouped datasets.
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -188,7 +188,7 @@ Key factors:
 - In Sales_Flat table, CustomerName = Outlet Name
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -206,7 +206,7 @@ Table Relationships:
 
 "SELECT
     sf.CustomerName AS OutletName,
-    SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE -sf.NetValue END) AS TotalSales
+    SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE -sf.in_sales END) AS TotalSales
 FROM
     sales_flat AS sf
 WHERE
@@ -219,7 +219,7 @@ LIMIT 10;
 ",
 "
 Key factors:
-- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.netvalue) else -fv.netvalue end) from Sales_Flat fv;
+- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.in_sales) else -fv.in_sales end) from Sales_Flat fv;
 - When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
 - If the user asks anything like """"based on historical"""" or """"past data"""", return results using currently available data only.
     Example:
@@ -230,7 +230,7 @@ Key factors:
 - In Sales_Flat table, CustomerName = Outlet Name
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -249,7 +249,7 @@ Table Relationships:
 
 "SELECT 
     fv.ProductCode AS SKU,
-    SUM(CASE WHEN fv.Type = 'sales' THEN fv.NetValue ELSE -fv.NetValue END) AS TotalSales
+    SUM(CASE WHEN fv.Type = 'sales' THEN fv.in_sales ELSE -fv.in_sales END) AS TotalSales
 FROM 
     sales_flat AS fv
 WHERE 
@@ -261,13 +261,13 @@ ORDER BY
     
 "
 Key factors:
-- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.netvalue) else -fv.netvalue end) from Sales_Flat fv;
+- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.in_sales) else -fv.in_sales end) from Sales_Flat fv;
 - When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
 - SKU refers to the number of unique products (SKUs) engaged or sold during that interaction.
 - If the user doesn't mention any time period, do not use a time filter in the SQL query.
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -287,7 +287,7 @@ Table Relationships:
     sf.CustomerName,
     COUNT(DISTINCT sf.InvoiceNo) AS VisitCount,
     COUNT(DISTINCT sf.ProductCode) AS ProductVariety,
-    SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END) AS TotalSales
+    SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END) AS TotalSales
 FROM 
     sales_flat AS sf
 WHERE 
@@ -298,7 +298,7 @@ HAVING
     TotalSales < (
         SELECT AVG(TotalSales) FROM (
             SELECT 
-                SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END) AS TotalSales
+                SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END) AS TotalSales
             FROM 
                 sales_flat sf
             WHERE 
@@ -314,7 +314,7 @@ ORDER BY
 ",
 "
 Key factors:
-- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.netvalue) else -fv.netvalue end) from Sales_Flat fv;
+- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.in_sales) else -fv.in_sales end) from Sales_Flat fv;
 - When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
 - If the user asks anything like """"based on historical"""" or """"past data"""", return results using currently available data only.
     Example:
@@ -323,7 +323,7 @@ Key factors:
 - In Sales_Flat table, CustomerName = Outlet Name
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 
 8. Market return goods trend at the outlet Baticalo Rep 17, is this outlet giving  return usually? If so any specific pack size that the returns are  coming from,
 
@@ -347,7 +347,7 @@ Key factors:
 - When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -365,8 +365,8 @@ Table Relationships:
 "
 SELECT 
     sf.CustomerName AS Outlet,
-    SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END) - 
-    SUM(CASE WHEN sf.Type = 'return' THEN sf.NetValue ELSE 0 END) AS NetSales
+    SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END) - 
+    SUM(CASE WHEN sf.Type = 'return' THEN sf.in_sales ELSE 0 END) AS NetSales
 FROM 
     sales_flat AS sf
 WHERE 
@@ -381,12 +381,12 @@ ORDER BY
 "
 Key factors:
 - If the user doesn't mention any time period, do not use a time filter in the SQL query.
-- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.netvalue) else -fv.netvalue end) from Sales_Flat fv;
+- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.in_sales) else -fv.in_sales end) from Sales_Flat fv;
 - When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
 - In Sales_Flat table, CustomerName = Outlet Name
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -404,7 +404,7 @@ Table Relationships:
 
 "SELECT 
     sf.Route AS Route,
-    SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE -sf.NetValue END) AS TotalSales
+    SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE -sf.in_sales END) AS TotalSales
 FROM 
     sales_flat AS sf
 WHERE 
@@ -419,11 +419,11 @@ LIMIT 10;",
 "
 Key factors:
 - If the user doesn't mention any time period, do not use a time filter in the SQL query.
-- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.netvalue) else -fv.netvalue end) from Sales_Flat fv;
+- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.in_sales) else -fv.in_sales end) from Sales_Flat fv;
 - When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -441,7 +441,7 @@ Table Relationships:
 
 "SELECT 
     sf.CustomerName AS Outlet,
-    AVG(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE -sf.NetValue END) AS AverageSales,
+    AVG(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE -sf.in_sales END) AS AverageSales,
     AVG(sf.Qty) AS AverageVolume
 FROM 
     sales_flat AS sf
@@ -457,10 +457,10 @@ LIMIT 10;",
 - If the user doesn't mention any time period, do not use a time filter in the SQL query.
 - When generating SQL queries, if you refer to columns using a table alias (e.g., sf.column_name), always define that alias by including the full table name followed by a meaningful short alias (e.g., sales_flat AS sf). The alias should be a logical abbreviation of the table name for clarity and consistency.
 - In Sales_Flat table, CustomerName = Outlet Name
-- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.netvalue) else -fv.netvalue end) from Sales_Flat fv;
+- Sales = Net Sales calculated as select sum(case when fv.Type = 'sales' then (fv.in_sales) else -fv.in_sales end) from Sales_Flat fv;
 
 Tables:
-- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, NetValue, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
+- sales_flat(Date, InvoiceNo, ProductCode, ProductName, Qty, Discount, in_sales, Brand, CustomerCategory, ProductCategory, Route, RepId, RepCode, RepName, CustomerCode, CustomerName,ASM, RSM, Distributor, Type(sales,return))
 - sales_hierarchy_nodes(Id, Code, Name) - (This is Rep table)
 - planned_routes(PlannedDate, RouteId, RepId)
 - sales_targets(Type, Value, Qty, ProductId, StartDate, EndDate)
@@ -478,9 +478,9 @@ Table Relationships:
 
 "SELECT
     SUM(st.Value) AS Monthly_Sales_Target,
-    COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) AS Current_Achievement,
-    (SUM(st.Value) - COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0)) AS Balance_Needed,
-    (COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.NetValue ELSE 0 END), 0) /
+    COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END), 0) AS Current_Achievement,
+    (SUM(st.Value) - COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END), 0)) AS Balance_Needed,
+    (COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END), 0) /
      NULLIF(DAY(CURDATE()) - 1, 0)) AS current_run_rate,
 
     (SUM(st.Value) / DAY(LAST_DAY(CURRENT_DATE))) AS required_run_rate
