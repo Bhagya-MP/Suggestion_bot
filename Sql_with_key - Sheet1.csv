@@ -509,10 +509,11 @@ LIMIT 1;"
 
 14. What is target for rep 'KALREP018',
 
-"SELECT SUM(st.Value) AS TotalTarget
+"
+SELECT SUM(st.Value) AS CurrentMonthTarget
 FROM sales_targets AS st
 JOIN sales_hierarchy_nodes AS shn ON st.RepId = shn.Id
-WHERE st.Type = 1 AND shn.Code = (SELECT DISTINCT sf.RepCode FROM sales_flat AS sf WHERE sf.RepCode = 'KALREP018')
-AND st.StartDate <= LAST_DAY(CURRENT_DATE)
+WHERE st.Type = 1 AND shn.Code = 'KALREP018'
+  AND st.StartDate <= LAST_DAY(CURRENT_DATE)
   AND st.EndDate >= DATE_FORMAT(CURRENT_DATE, '%Y-%m-01');
 "
