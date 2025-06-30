@@ -517,3 +517,78 @@ WHERE st.Type = 1 AND shn.Code = 'KALREP018'
   AND st.StartDate <= LAST_DAY(CURRENT_DATE)
   AND st.EndDate >= DATE_FORMAT(CURRENT_DATE, '%Y-%m-01');
 "
+
+15. line item per bill for rep 'BATREP017'
+
+"
+SELECT AVG(UniqueItemsPerBill) AS AvgUniqueItemsPerBill
+FROM (
+    SELECT sf.InvoiceNo, COUNT(DISTINCT sf.ProductCode) AS UniqueItemsPerBill
+    FROM sales_flat AS sf
+    WHERE sf.RepCode = 'BATREP017'
+    GROUP BY sf.InvoiceNo
+) AS sub;
+"
+
+16. KPI line item per day bill for rep 'BATREP017'
+
+"
+WITH BillsPerDay AS (
+    SELECT 
+        sf.Date,
+        sf.RepId,
+        COUNT(DISTINCT sf.InvoiceNo) AS BillsPerDay
+    FROM 
+        sales_flat sf
+    WHERE 
+        sf.Date >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH) AND sf.RepCode = 'BATREP017'
+    GROUP BY 
+        sf.Date, sf.RepId
+)
+SELECT 
+    RepId,
+    AVG(BillsPerDay) AS AvgBillsPerDay
+FROM 
+    BillsPerDay
+GROUP BY 
+    RepId;
+"
+
+17. KPI per bill value / volume for rep 'BATREP017'
+
+"
+SELECT 
+    rh.Name AS RepName,
+    IFNULL(S.TotalSales, 0) / NULLIF(T.TotalTarget, 0) AS KPI_Per_Bill_Value,
+    IFNULL(S.TotalVolume, 0) AS KPI_Volume,
+    (IFNULL(S.TotalSales, 0) / NULLIF(T.TotalTarget, 0)) / NULLIF(IFNULL(S.TotalVolume, 0), 0) AS KPI
+FROM 
+    sales_hierarchy_nodes rh
+LEFT JOIN (
+    SELECT 
+        sf.RepId, 
+        SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END) AS TotalSales,
+        SUM(sf.Qty) AS TotalVolume
+    FROM 
+        sales_flat sf
+    WHERE 
+        DATE(sf.Date) >= DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') 
+    GROUP BY 
+        sf.RepId
+) S ON rh.Id = S.RepId
+LEFT JOIN (
+    SELECT 
+        st.RepId, 
+        SUM(st.Value) AS TotalTarget
+    FROM 
+        sales_targets st
+    WHERE 
+        st.StartDate <= CURRENT_DATE() AND st.EndDate >= CURRENT_DATE()
+        AND st.Type = 1
+    GROUP BY 
+        st.RepId
+) T ON rh.Id = T.RepId
+ORDER BY 
+    KPI_Per_Bill_Value DESC
+LIMIT 10;
+"
