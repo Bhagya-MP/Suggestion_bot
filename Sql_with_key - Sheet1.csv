@@ -106,10 +106,11 @@ Table Relationships:
 
 3. Rep wise top 10 best performance outlet,
 
-"WITH OutletSales AS (
+"
+WITH OutletSales AS (
     SELECT 
         sf.CustomerCode,
-        SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END) AS TotalSales,
+        (SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END) - SUM(CASE WHEN sf.Type = 'return' THEN sf.in_sales ELSE 0 END)) AS NetSales,
         shn.Id AS RepId,
         shn.Name AS RepName
     FROM 
@@ -121,24 +122,24 @@ Table Relationships:
 RankedOutlets AS (
     SELECT 
         os.CustomerCode,
-        os.TotalSales,
+        os.NetSales,
         os.RepId,
         os.RepName,
-        ROW_NUMBER() OVER (PARTITION BY os.RepId ORDER BY os.TotalSales DESC) AS SalesRank
+        ROW_NUMBER() OVER (PARTITION BY os.RepId ORDER BY os.NetSales DESC) AS SalesRank
     FROM 
         OutletSales os
 )
 SELECT 
     RepName,
     CustomerCode,
-    TotalSales,
+    NetSales,
     SalesRank
 FROM 
     RankedOutlets
 WHERE 
     SalesRank <= 10
 ORDER BY 
-    RepId, TotalSales DESC;
+    RepId, NetSales DESC;
 ",
 "
 Key factors:
