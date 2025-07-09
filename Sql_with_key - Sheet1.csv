@@ -475,7 +475,7 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-12. Monthly Sales Target vs current achievement for repCode 'MATREP001'
+12. What is Target vs achievement
 
 "WITH target_cte AS (
     SELECT round(SUM(st.Value), 2) AS Monthly_Sales_Target
