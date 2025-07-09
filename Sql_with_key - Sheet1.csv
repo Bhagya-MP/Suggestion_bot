@@ -475,26 +475,29 @@ Table Relationships:
 - sales_Flat.ProductCode = products.Code
 - sales_Flat.CustomerCode = external_parties.Code"
 
-12. Monthly Sales Target vs current achievement for repCode 'KALREP018'
+12. Monthly Sales Target vs current achievement for repCode 'MATREP001'
 
-"SELECT
-    SUM(st.Value) AS Monthly_Sales_Target,
-    COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END), 0) AS Current_Achievement,
-    (SUM(st.Value) - COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END), 0)) AS Balance_Needed,
-    (COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END), 0) /
-     NULLIF(DAY(CURDATE()) - 1, 0)) AS current_run_rate,
-
-    (SUM(st.Value) / DAY(LAST_DAY(CURRENT_DATE))) AS required_run_rate
-FROM 
-    sales_targets AS st
-LEFT JOIN 
-    sales_hierarchy_nodes AS shn ON st.RepId = shn.Id
-LEFT JOIN 
-    sales_flat AS sf ON sf.RepId = shn.Id AND sf.RepCode = 'KALREP018'
-WHERE 
-	sf.RepCode = 'KALREP018' AND
-    st.StartDate <= LAST_DAY(CURRENT_DATE) AND 
-    st.EndDate >= DATE_FORMAT(CURRENT_DATE, '%Y-%m-01')"
+"WITH target_cte AS (
+    SELECT round(SUM(st.Value), 2) AS Monthly_Sales_Target
+    FROM sales_targets AS st
+    JOIN sales_hierarchy_nodes AS shn ON st.RepId = shn.Id
+    WHERE shn.Code = 'MATREP001'
+      AND st.Type = 1
+      AND st.StartDate <= LAST_DAY(CURRENT_DATE)
+      AND st.EndDate >= DATE_FORMAT(CURRENT_DATE, '%Y-%m-01')
+),
+achievement_cte AS (
+    SELECT round(COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END), 0), 2) AS Current_Achievement
+    FROM sales_flat AS sf
+    WHERE sf.RepCode = 'MATREP001'
+)
+SELECT
+    t.Monthly_Sales_Target,
+    a.Current_Achievement, 
+    round((t.Monthly_Sales_Target - a.Current_Achievement), 2) AS Balance_Needed,
+    round((a.Current_Achievement / NULLIF(DAY(CURDATE()), 0)), 2) AS Current_Run_Rate,
+    round(((t.Monthly_Sales_Target - a.Current_Achievement) / DAY(LAST_DAY(CURDATE())) - DAY(CURDATE())), 2) AS Required_Run_Rate
+FROM target_cte t, achievement_cte a;"
 
 13. What is the product name that highest target set for last month for rep 'KALREP018',
 
