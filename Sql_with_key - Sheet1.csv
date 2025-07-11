@@ -490,6 +490,7 @@ achievement_cte AS (
     SELECT round(COALESCE(SUM(CASE WHEN sf.Type = 'sales' THEN sf.in_sales ELSE 0 END), 0), 2) AS Current_Achievement
     FROM sales_flat AS sf
     WHERE sf.RepCode = 'MATREP001'
+    AND sf.Date BETWEEN DATE_FORMAT(CURRENT_DATE(), '%Y-%m-01') AND LAST_DAY(CURRENT_DATE())
 )
 SELECT
     t.Monthly_Sales_Target,
